@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getToken, removeToken } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
@@ -8,6 +9,38 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// リクエストインターセプター: Authorizationヘッダーを自動追加
+api.interceptors.request.use(
+  (config) => {
+    const token = getToken();
+    console.log('[API] Request interceptor - Token:', token ? `${token.substring(0, 20)}...` : 'NONE');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('[API] Authorization header added');
+    } else {
+      console.log('[API] No token found, skipping Authorization header');
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// レスポンスインターセプター: 401エラー時にログイン画面にリダイレクト
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      removeToken();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Types
 export interface Project {

@@ -9,6 +9,12 @@ env/
 *.db
 *.sqlite3
 
+# Environment variables (IMPORTANT: Contains SECRET_KEY)
+.env
+*.env
+backend/.env
+backend/venv/
+
 # Node
 node_modules/
 .next/
