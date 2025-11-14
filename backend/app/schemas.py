@@ -1,6 +1,37 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, EmailStr
 from typing import Optional, List
 from datetime import datetime
+
+# ========== User/Auth Schemas ==========
+
+class UserCreate(BaseModel):
+    email: EmailStr = Field(..., description="メールアドレス")
+    password: str = Field(..., min_length=8, description="パスワード（8文字以上）")
+    name: str = Field(..., min_length=1, description="ユーザー名")
+
+
+class UserLogin(BaseModel):
+    email: EmailStr = Field(..., description="メールアドレス")
+    password: str = Field(..., description="パスワード")
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    name: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class TokenData(BaseModel):
+    user_id: Optional[int] = None
 
 # ========== Project Schemas ==========
 

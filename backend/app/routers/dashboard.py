@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Dict
@@ -6,6 +6,7 @@ from datetime import datetime
 from collections import defaultdict
 from .. import models, schemas
 from ..database import get_db
+from ..auth import get_current_user
 
 router = APIRouter()
 
@@ -32,12 +33,21 @@ def calculate_weighted_average(members_with_scores: List[Dict]) -> float:
 
 
 @router.get("/projects/{project_id}/dashboard", response_model=schemas.DashboardResponse)
-def get_dashboard(project_id: int, db: Session = Depends(get_db)):
+def get_dashboard(
+    project_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """プロジェクトのダッシュボードデータを取得"""
-    # プロジェクトの存在確認
+    # プロジェクトの存在確認と所有権チェック
     project = db.query(models.Project).filter(models.Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+    if project.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="このプロジェクトにアクセスする権限がありません"
+        )
 
     # プロジェクト情報
     project_info = {

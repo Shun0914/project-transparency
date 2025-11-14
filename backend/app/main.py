@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
-from .routers import projects, members, scores, dashboard
+from .routers import projects, members, scores, dashboard, auth
 
 # データベーステーブルの作成
 Base.metadata.create_all(bind=engine)
@@ -24,6 +24,7 @@ app.add_middleware(
 )
 
 # ルーターの登録
+app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(projects.router, prefix="/api", tags=["projects"])
 app.include_router(members.router, prefix="/api", tags=["members"])
 app.include_router(scores.router, prefix="/api", tags=["scores"])
