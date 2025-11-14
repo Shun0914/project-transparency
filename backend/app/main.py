@@ -2,9 +2,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
 from .routers import projects, members, scores, dashboard, auth
+import os
 
 # データベーステーブルの作成
+# RESET_DB=trueの場合、既存テーブルを削除して再作成（マイグレーション用）
+if os.getenv("RESET_DB", "false").lower() == "true":
+    print("⚠️  RESET_DB=true detected. Dropping all tables and recreating...")
+    Base.metadata.drop_all(bind=engine)
+    print("✅ All tables dropped.")
+
 Base.metadata.create_all(bind=engine)
+print("✅ Database tables created/verified.")
 
 # FastAPIアプリケーションの初期化
 app = FastAPI(
